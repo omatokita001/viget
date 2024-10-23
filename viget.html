@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant - Viget</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="https://noticias.ai/wp-content/uploads/2022/12/noticias-ai-colorvivo_artificial_intelligence_icon_3e4cf4fe-561c-4913-8994-c591eb34576d-1024x1024.png" type="image/png">
+</head>
+<body>
+    <div id="ai-container">
+        <div id="robot-container">
+            <img id="hologram" src="http://33.media.tumblr.com/bcb48d4a920b26d1e7ced4fd87e84439/tumblr_mov6klwXlm1qav3uso4_500.gif" alt="Hologram GIF">
+        </div>
+        <div id="conversation-container"></div>
+    </div>
+    <div id="controls">
+        <input type="text" id="command-input" placeholder="Escribe tu comando aquí..." onkeydown="handleKeyPress(event)">
+        <button onclick="handleCommand()">Enviar</button>
+    </div>
+    <div id="youtube-container"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"></script>
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=YOUR_KEY_HERE"></script>
+    <script src="script.js"></script>
+</body>
+<style>
+    body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #000000;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100vh;
+}
+
+#ai-container {
+    display: flex;
+    width: 90%;
+    height: 80%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#robot-container {
+    width: 45%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#hologram {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#conversation-container {
+    width: 45%;
+    height: 100%;
+    overflow-y: auto;
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: #222;
+    display: flex;
+    flex-direction: column;
+}
+
+.bubble {
+    padding: 10px;
+    border-radius: 10px;
+    margin: 5px 0;
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.user-bubble {
+    background-color: #3b82f6;
+    color: white;
+    align-self: flex-end;
+}
+
+.viget-bubble {
+    background-color: #4caf50;
+    color: white;
+    align-self: flex-start;
+}
+
+#controls {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    width: 90%;
+}
+
+#command-input {
+    width: 80%;
+    padding: 10px;
+    margin-right: 10px;
+}
+
+#controls button {
+    padding: 10px;
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+}
+
+#youtube-container {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#youtube-iframe {
+    width: 80%;
+    height: 80%;
+    border: none;
+    border-radius: 10px;
+}
+
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+    initVoiceCommands();
+});
+
+let lastQuestionTime = Date.now();
+let canSendMessage = true; // Bandera para controlar el envío de mensajes
+
+function handleButtonClick() {
+    if (canSendMessage) {
+        handleCommand();
+        canSendMessage = false; // Desactiva el envío de mensajes
+        setTimeout(() => {
+            canSendMessage = true; // Reactiva el envío de mensajes después de 2 segundos
+        }, 2000);
+    }
+}
+
+function handleCommand() {
+    const command = document.getElementById('command-input').value;
+    addBubble(command, 'user');
+    processCommand(command);
+    document.getElementById('command-input').value = '';
+}
+
+function processCommand(command) {
+    const lowerCaseCommand = command.toLowerCase();
+
+    if (/hola|buenos días|buenas tardes|buenas noches/.test(lowerCaseCommand)) {
+        const responses = ["¡Hola, soy Viget! ¿Cómo estás?", "¡Hola! ¿En qué puedo ayudarte hoy?", "¡Hola! ¡Qué gusto verte!"];
+        const response = responses[Math.floor(Math.random() * responses.length)];
+        addBubble(response, 'viget');
+        responsiveVoice.speak(response, "Spanish Female");
+    } else if (lowerCaseCommand.includes('como estas')) {
+        const responses = ["Estoy bien, gracias por preguntar.", "¡Muy bien! ¿Y tú?", "Todo bien por aquí. ¿En qué puedo ayudarte?"];
+        const response = responses[Math.floor(Math.random() * responses.length)];
+        addBubble(response, 'viget');
+        responsiveVoice.speak(response, "Spanish Female");
+    } else if (lowerCaseCommand.includes('que haces')) {
+        const responses = ["Estoy aquí para ayudarte.", "Esperando tus órdenes.", "Listo para asistirte en lo que necesites."];
+        const response = responses[Math.floor(Math.random() * responses.length)];
+        addBubble(response, 'viget');
+        responsiveVoice.speak(response, "Spanish Female");
+    } else if (lowerCaseCommand.includes('me puedes ayudar')) {
+        const responses = ["Claro, ¿en qué necesitas ayuda?", "Estoy aquí para eso. ¿Qué necesitas?", "Por supuesto, dime en qué puedo ayudarte."];
+        const response = responses[Math.floor(Math.random() * responses.length)];
+        addBubble(response, 'viget');
+        responsiveVoice.speak(response, "Spanish Female");
+    } else if (lowerCaseCommand.includes('quien te creo')) {
+        const response = "Fui creada por Franklin Omar Puello.";
+        addBubble(response, 'viget');
+        responsiveVoice.speak(response, "Spanish Female");
+    } else if (lowerCaseCommand.includes('como te llamas')) {
+        const response = "Me llamo Viget.";
+        addBubble(response, 'viget');
+        responsiveVoice.speak(response, "Spanish Female");
+    } else if (lowerCaseCommand.includes('reproduce musica de youtube')) {
+        const query = command.replace('reproduce musica de youtube', '').trim();
+        searchYouTube(query);
+    } else if (lowerCaseCommand.includes('busca')) {
+        const query = command.replace('busca', '').trim();
+        searchGoogle(query);
+    } else {
+        // Solo busca en Google si la pregunta no está en el diccionario
+        const isQuestion = lowerCaseCommand.endsWith('?') || lowerCaseCommand.includes('qué') || lowerCaseCommand.includes('cómo') || lowerCaseCommand.includes('quién');
+        if (isQuestion) {
+            searchGoogle(command);
+        } else {
+            addBubble("No entendí el comando.", 'viget');
+            responsiveVoice.speak("No entendí el comando.", "Spanish Female");
+        }
+    }
+}
+
+
+    lastQuestionTime = currentTime;
+
+    if (/hola|buenos días|buenas tardes|buenas noches/.test(lowerCaseCommand)) {
+        const responses = ["¡Hola, soy Viget! ¿Cómo estás?", "¡Hola! ¿En qué puedo ayudarte hoy?", "¡Hola! ¡Qué gusto verte!"];
+        const response = responses[Math.floor(Math.random() * responses.length)];
+        addBubble(response, 'viget');
+        responsiveVoice.speak(response, "Spanish Female");
+    } else if (lowerCaseCommand.includes('como estas')) {
+        const responses = ["Estoy bien, gracias por preguntar.", "¡Muy bien! ¿Y tú?", "Todo bien por aquí. ¿En qué puedo ayudarte?"];
+        const response = responses[Math.floor(Math.random() * responses.length)];
+        addBubble(response, 'viget');
+        responsiveVoice.speak(response, "Spanish Female");
+    } else if (lowerCaseCommand.includes('que haces')) {
+        const responses = ["Estoy aquí para ayudarte.", "Esperando tus órdenes.", "Listo para asistirte en lo que necesites."];
+        const response = responses[Math.floor(Math.random() * responses.length)];
+        addBubble(response, 'viget');
+        responsiveVoice.speak(response, "Spanish Female");
+    } else if (lowerCaseCommand.includes('me puedes ayudar')) {
+        const responses = ["Claro, ¿en qué necesitas ayuda?", "Estoy aquí para eso. ¿Qué necesitas?", "Por supuesto, dime en qué puedo ayudarte."];
+        const response = responses[Math.floor(Math.random() * responses.length)];
+        addBubble(response, 'viget');
+        responsiveVoice.speak(response, "Spanish Female");
+    } else if (lowerCaseCommand.includes('quien te creo')) {
+        const response = "Fui creada por Franklin Omar Puello.";
+        addBubble(response, 'viget');
+        responsiveVoice.speak(response, "Spanish Female");
+    } else if (lowerCaseCommand.includes('como te llamas')) {
+        const response = "Me llamo Viget.";
+        addBubble(response, 'viget');
+        responsiveVoice.speak(response, "Spanish Female");
+    } else if (lowerCaseCommand.includes('reproduce música de youtube')) {
+        const query = command.replace('reproduce música de youtube', '').trim();
+        searchYouTube(query);
+    } else if (lowerCaseCommand.includes('busca')) {
+        const query = command.replace('busca', '').trim();
+        addBubble("Buscando " + query + " en Google", 'viget');
+        searchGoogle(query);
+    } else {
+        const response = "No entendí el comando " + command;
+        addBubble(response, 'viget');
+        responsiveVoice.speak(response, "Spanish Female");
+    }
+
+
+function addBubble(message, type) {
+    const conversationContainer = document.getElementById('conversation-container');
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble ' + (type === 'user' ? 'user-bubble' : 'viget-bubble');
+    bubble.innerText = message;
+    conversationContainer.appendChild(bubble);
+    conversationContainer.scrollTop = conversationContainer.scrollHeight;
+}
+
+function searchGoogle(query) {
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+    window.open(searchUrl, '_blank');
+    addBubble(`Buscando "${query}" en Google`, 'viget');
+    responsiveVoice.speak(`Buscando "${query}" en Google`, "Spanish Female");
+}
+
+function searchYouTube(query) {
+    const youtubeUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+    window.open(youtubeUrl, '_blank');
+    addBubble(`Buscando música de YouTube: ${query}`, 'viget');
+    responsiveVoice.speak(`Buscando música de YouTube: ${query}`, "Spanish Female");
+}
+
+function initVoiceCommands() {
+    if (annyang) {
+        const commands = {
+            'reproduce música de YouTube *query': function(query) {
+                processCommand('reproduce música de YouTube ' + query);
+            },
+            'busca *query en Google': function(query) {
+                processCommand('busca ' + query + ' en Google');
+            },
+            'hola': function() {
+                processCommand('hola');
+            },
+            'cómo estás': function() {
+                processCommand('como estas');
+            },
+            'qué haces': function() {
+                processCommand('que haces');
+            },
+            'me puedes ayudar': function() {
+                processCommand('me puedes ayudar');
+            },
+            'quién te creó': function() {
+                processCommand('quien te creo');
+            },
+            'cómo te llamas': function() {
+                processCommand('como te llamas');
+            }
+        };
+        annyang.addCommands(commands);
+        annyang.start();
+    }
+}
+
+document.getElementById('send-button').addEventListener('click', handleButtonClick);
+</script>
+</html>
